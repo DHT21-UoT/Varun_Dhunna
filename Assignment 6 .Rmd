@@ -1,0 +1,137 @@
+---
+title: 'Assignment 6: Warmer or Colder?'
+author: "Varun Dhunna"
+date: "29/07/2021"
+output: html_document
+---
+
+
+### **Introduction** ###
+
+**Objective:** The objective of this report is to determine long and short-term trends in global and zonal temperatures via data visualization. The dataset used in this study was collected from NASA-GISS, [https://data.giss.nasa.gov/gistemp/]. 
+
+
+Goddard Institute for Space Studies (GISS) reports the changes in temperature in term of anomalies rather than absolute values. Temperature anomalies indicate how much warmer or colder it is than "normal" for a particular place and time. For the GISS analysis, "normal" was defined as the average over the 30-year period from 1951 to 1980. A positive departure from that reference value indicates that the observed temperature was warmer than the reference value whereas, a negative departure of the observed value indicates that it was cooler than the reference value. This base period used in this study is only specific to GISS and is not considered unviseral. The GISS dataset contained selected zonal means of the Annual mean Land-Ocean Temperature Index in 0.01 degrees Celsius. For data visualization purposes, we decided to convert the these data points back to Celsius. 
+
+
+For the purposes of this report, it should be noted that the original data set was cleaned and manipulated for visualization purposes. The graphs presented below illustrate 1) The global temperature increase over time, 2) Temperature anomalies in the two hemisphere over time, and 3) Temperature anomalies in the equatorial pole, north pole, and south pole over the past 100 years. 
+
+
+
+```{r, echo=FALSE, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+df<- read.csv("GISS_Zonal_Annual.csv")
+```
+
+A glimpse of the data: 
+```{r, echo=TRUE, include = T}
+head(df)
+
+```
+
+
+
+```{r, echo=FALSE, include=FALSE}
+df[df$Year == "*****"]
+df[df$Glob == "*****"]
+df[df$NHem == "*****"]
+df[df$SHem == "*****"]
+df[df$X24N.90N == "*****"]
+df[df$X24S.24N == "*****"]
+df[df$X90S.24S == "*****"]
+df[df$X64N.90N == "*****"]
+df[df$X44N.64N == "*****"]
+df[df$X24N.44N == "*****"]
+df[df$EQU.24N == "*****"]
+df[df$X24S.EQU == "*****"]
+df[df$X44S.24S == "*****"]
+df[df$X64S.44S == "*****"]
+df[df$X90S.64S == "*****"]
+
+df <- df %>%
+  mutate_if(is.numeric, ~ . * 100) %>%
+  mutate(Year = Year/100) 
+
+```
+
+
+
+
+
+## **Anomalies in Global Temperature  Over Time**
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, fig.align='center', message=FALSE}
+
+ggplot(df, aes(x=Year, y=Glob))+
+  geom_point(shape = 18)+
+  geom_smooth(aes(), color = "red", se = F)+
+  theme_classic()+
+  labs(title ="Anomalies in Global Temperature Over Time (1880-2020)", 
+       x = "Year", y = "Global Temperature Anomolies (°C)", 
+       subtitle = "Data derived from GISS",
+       tag = "R1")
+
+```
+
+
+
+
+## **Temperature Anomalies Across the Hemispheres**
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, fig.align='center', message=FALSE}
+data <- df %>%
+  select(Year, NHem, SHem) %>%
+  rename(North_Hemisphere = NHem, South_Hemisphere = SHem)
+library("reshape2")           
+data_long <- melt(data, id.vars="Year") #helps to graph boxplots 
+
+ggplot(data_long, aes(x = variable, y = value))+
+  geom_boxplot(aes(), outlier.color = "red")+
+  theme_classic() +
+  labs(title ="Temperature Anomalies Across the Hemispheres", 
+       x = "Hemispheres", y = "Global Temperature Anomolies (°C)",
+       subtitle = "Data derived from GISS", tag = "R2")
+
+```
+
+
+
+## **Temperature Anomalies in the Past 100 Years**
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, fig.align='center', message=FALSE, fig.width=12, fig.height=9}
+
+df3 <- df %>%
+  select("Year", "X24S.24N", "X64N.90N", "X90S.64S") %>%
+  rename(Equatorial_Band = "X24S.24N", North_Pole ="X64N.90N", South_Pole = "X90S.64S")%>%
+  filter(Year >= 1920)
+
+data_longer <- melt(df3, id.vars = "Year")
+data_longer <- data_longer %>%
+  rename(Poles = variable)
+
+ggplot(data_longer, aes(x=Year, y=value, color= Poles))+ 
+  geom_line()+
+  geom_point(position = "jitter")+
+  theme_classic()+
+  scale_colour_brewer(palette = "Set1")+
+  labs(title ="Temperature Anomalies at the North Pole, South Pole, & the Equatorial Band Over the Past 100 Years", 
+       x = "Years", y = "Temperature Anomoly (°C)",
+       subtitle = "Data derived from GISS", tag = "R3")
+```
+
+### **Conclusion** ###
+
+
+From this data, it is conclusive to say that global temperature has been increasing over time when compared to the "normal" (as seen in Graph 1_); here "normal" was defined as the average over the 30-year period from 1951 to 1980. It can be observed from graph 1 that global temperature has been increasing at an almost exponential rate. From graph 2, you can observe that there is a much larger variation between the temperature anomalies observed in the northern hemisphere than when compared to the southern hemisphere. Furthermore, it can also be seen that areas close to the north pole have been steadily increasing over the past 100 years whereas, areas closer to the equatorial band seem to be slowly increasing as well. As for the areas closer to the south pole, it is quite evident that there is large fluctuations in the early 1900s however, these fluctuations are still upwards pointing indicating yet again an increasing in temperature over time. The data speaks for itself. These temperature anomalies over time indicate that the globe is evidently heating up and at a very increasing pace.  
